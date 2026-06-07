@@ -29,17 +29,17 @@ export class AudioEngine {
 
     const source = this._ctx.createMediaStreamSource(this._stream);
 
-    // Band-pass: high-pass at 1500Hz removes body resonance that rings for
-    // 100-200ms when the watch touches the mic; low-pass at 8kHz removes hiss.
-    // Together they isolate just the sharp initial click (2-8kHz energy).
+    // For chassis-conducted vibration (watch pressed against phone back),
+    // the dominant energy is 200-3000Hz — mechanical resonance of the case.
+    // Previous 1500Hz HP was cutting out the main watch tick frequencies.
     const hp = this._ctx.createBiquadFilter();
     hp.type = 'highpass';
-    hp.frequency.value = 1500;
-    hp.Q.value = 0.8;
+    hp.frequency.value = 200;
+    hp.Q.value = 0.7;
 
     const lp = this._ctx.createBiquadFilter();
     lp.type = 'lowpass';
-    lp.frequency.value = 8000;
+    lp.frequency.value = 3000;
     lp.Q.value = 0.7;
 
     // AnalyserNode for oscilloscope
@@ -52,6 +52,7 @@ export class AudioEngine {
       if (e.data.type === 'tick')   this._onTick(e.data.time);
       if (e.data.type === 'level')  this._onLevel(e.data.peak, e.data.floor);
       if (e.data.type === 'energy') this._onEnergyBuffer(e.data.buffer);
+      if (e.data.type === 'log')    console.log(e.data.msg);
     };
 
     source.connect(hp);

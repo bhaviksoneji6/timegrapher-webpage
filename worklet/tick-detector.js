@@ -78,6 +78,7 @@ class TickDetectorProcessor extends AudioWorkletProcessor {
 
         if (abs > threshold) {
           this.port.postMessage({ type: 'tick', time: currentTime + i / sampleRate });
+          this.port.postMessage({ type: 'log', msg: `tick amp=${abs.toFixed(5)} slow=${this._slowEnergy.toFixed(5)} ratio=${(abs/this._slowEnergy).toFixed(1)}` });
           this._peakAmplitude = abs;
           this._state = 'locked';
           this._lockTimer = minLockSamples;
