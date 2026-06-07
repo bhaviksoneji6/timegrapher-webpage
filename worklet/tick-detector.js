@@ -1,24 +1,29 @@
 class TickDetectorProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
-    this._noiseFloor = 0.0001;
-    this._multiplier = 3.5;
+    // Two-speed energy tracking for onset detection:
+    // fastEnergy tracks signal over ~5ms (detects sudden spikes)
+    // slowEnergy tracks signal over ~500ms (represents background floor)
+    // A tick fires when fast >> slow by the sensitivity multiplier.
+    // This is self-normalising and survives residual AGC on iOS.
+    this._fastEnergy = 0;
+    this._slowEnergy = 0;
+    this._multiplier = 12;
 
-    // Individual tick detection (used for rate/beat-error once BPH is known)
     this._state = 'idle';
     this._peakAmplitude = 0;
     this._lockTimer = 0;
     this._releaseTimer = 0;
 
-    // Energy envelope: 5ms blocks → 200 blocks/sec
-    // Autocorrelation on this finds the tick period without threshold detection
     this._energyAccum = 0;
     this._energyCount = 0;
-    this._energyBuffer = [];  // rolling buffer sent to main thread
+    this._energyBuffer = [];
 
     this.port.onmessage = (e) => {
       if (e.data.type === 'sensitivity') {
-        this._multiplier = 7.0 - (e.data.value - 1) * (5.5 / 9);
+        // Slider 1 (least sensitive) → multiplier 25
+        // Slider 10 (most sensitive) → multiplier 5
+        this._multiplier = 25 - (e.data.value - 1) * (20 / 9);
       }
     };
   }
@@ -57,12 +62,21 @@ class TickDetectorProcessor extends AudioWorkletProcessor {
         }
       }
 
-      // ── Individual tick detection (adaptive refractory) ───────────────
-      if (this._state === 'idle') {
-        this._noiseFloor = this._noiseFloor * 0.9998 + abs * abs * 0.0002;
-        const threshold = Math.sqrt(this._noiseFloor) * this._multiplier;
+      // ── Two-speed onset detection ─────────────────────────────────────
+      // fastEnergy: alpha=0.01 per sample → ~100 sample / ~2ms attack
+      // slowEnergy: alpha=0.0003 per sample → ~3300 sample / ~75ms decay
+      // Together these form an onset detector that works even if AGC
+      // normalises the absolute level, since we compare fast vs slow.
+      this._fastEnergy = this._fastEnergy * 0.99  + abs * 0.01;
+      this._slowEnergy = this._slowEnergy * 0.9997 + abs * 0.0003;
 
-        if (abs > threshold && abs > 0.0001) {
+      if (this._state === 'idle') {
+        const threshold = Math.max(
+          this._slowEnergy * this._multiplier,
+          0.008   // absolute floor — ignores sub-1% signals entirely
+        );
+
+        if (abs > threshold) {
           this.port.postMessage({ type: 'tick', time: currentTime + i / sampleRate });
           this._peakAmplitude = abs;
           this._state = 'locked';
@@ -86,7 +100,7 @@ class TickDetectorProcessor extends AudioWorkletProcessor {
       }
     }
 
-    this.port.postMessage({ type: 'level', peak: peakInBlock, floor: Math.sqrt(this._noiseFloor) });
+    this.port.postMessage({ type: 'level', peak: peakInBlock, floor: this._slowEnergy });
     return true;
   }
 }

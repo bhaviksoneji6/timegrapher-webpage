@@ -10,14 +10,15 @@ export class AudioEngine {
   }
 
   async start() {
-    // Use ideal:false so constraints are treated as preferences, not requirements.
-    // iOS Safari silently ignores or rejects exact boolean constraints, which can
-    // leave AGC/noise-suppression running and crush the tick transients.
+    // Use exact boolean false (not {ideal:false}) to actually disable AGC and
+    // noise suppression on iOS 16+. {ideal:false} is only a preference and iOS
+    // Safari often ignores it, leaving AGC running which normalises everything
+    // to the same level so tick transients become indistinguishable from noise.
     this._stream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        echoCancellation: { ideal: false },
-        noiseSuppression: { ideal: false },
-        autoGainControl: { ideal: false },
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
         channelCount: { ideal: 1 },
       },
     });
