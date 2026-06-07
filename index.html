@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0d0d0d" />
+  <title>Timegrapher</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <h1>Timegrapher</h1>
+    <span>Watch accuracy meter</span>
+  </header>
+
+  <!-- ── READY VIEW ─────────────────────────────────────────── -->
+  <div id="readyView" class="card">
+    <div class="card-body">
+      <p class="tip" id="tip">Hold the watch as close to your microphone as possible.</p>
+      <button class="btn btn-primary" id="startBtn">Start Measuring</button>
+    </div>
+  </div>
+
+  <!-- ── ACTIVE CARD (listening + measuring + results) ─────── -->
+  <div id="measureView" class="card" hidden>
+
+    <!-- Oscilloscope — always visible while mic is active -->
+    <div class="scope-wrap" id="scopeWrap">
+      <canvas id="scopeCanvas"></canvas>
+      <div class="scope-overlay">
+        <span id="tickCount">0 ticks</span>
+        <span id="intervalDisplay"></span>
+      </div>
+    </div>
+
+    <!-- Signal meter + sensitivity -->
+    <div class="controls-row" id="meterRow">
+      <div class="meter-group">
+        <span class="ctrl-label">Signal</span>
+        <div class="meter-bar">
+          <div class="meter-fill" id="meterFill"></div>
+        </div>
+        <span class="meter-status" id="meterStatus"></span>
+      </div>
+      <div class="sensitivity-group">
+        <span class="ctrl-label">Sensitivity</span>
+        <input type="range" id="sensitivitySlider" min="1" max="10" value="7" />
+        <span class="ctrl-label" id="sensitivityVal">7</span>
+      </div>
+    </div>
+
+    <!-- Metrics (hidden until 20 ticks) -->
+    <div class="metrics" id="metrics" hidden>
+      <div class="metric">
+        <div class="metric-label">Rate</div>
+        <div class="metric-value" id="rateVal">—</div>
+        <div class="metric-unit" id="rateLabel">s/day</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Beat Error</div>
+        <div class="metric-value" id="beatVal">—</div>
+        <div class="metric-unit">ms</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Beat Rate</div>
+        <div class="metric-value" id="bphVal">—</div>
+        <div class="metric-unit">detected</div>
+      </div>
+    </div>
+
+    <!-- Timegrapher trace -->
+    <div class="trace-wrap" id="traceWrap" hidden>
+      <canvas id="traceCanvas"></canvas>
+    </div>
+
+    <!-- Status + progress (measuring only) -->
+    <p class="status-label" id="statusLabel" hidden>Listening…</p>
+    <p class="bph-hint" id="bphHint" hidden></p>
+    <div class="progress" id="progress" hidden>
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Stop button (visible while listening/measuring) -->
+    <div class="actions" id="stopRow" hidden>
+      <button class="btn btn-ghost" id="stopBtn">Stop</button>
+    </div>
+
+    <!-- Results actions -->
+    <div class="actions" id="resultsView" hidden>
+      <button class="btn btn-secondary" id="shareBtn">Share / Save Report</button>
+      <button class="btn btn-ghost" id="againBtn">Measure Again</button>
+    </div>
+
+  </div>
+
+  <!-- On-screen debug log — remove once detection is working -->
+  <div id="debugPanel" class="card" style="margin-top:8px">
+    <div style="padding:10px 16px 4px;font-size:11px;color:rgba(255,255,255,0.4)">Debug log</div>
+    <div id="debugLog" style="font-family:monospace;font-size:11px;color:#4a9eff;padding:0 16px 12px;max-height:160px;overflow-y:auto;white-space:pre-wrap;word-break:break-all"></div>
+  </div>
+
+  <script>
+    // Redirect console.log to on-screen panel
+    const _log = console.log.bind(console);
+    const logEl = document.getElementById('debugLog');
+    console.log = (...args) => {
+      _log(...args);
+      const line = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+      logEl.textContent += line + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    };
+  </script>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
