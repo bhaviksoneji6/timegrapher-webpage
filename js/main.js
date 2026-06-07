@@ -17,12 +17,12 @@ function detectPlatform() {
 }
 
 const PLATFORM_TIPS = {
-  iphone:  'Hold the watch flat against the back of your iPhone, near the bottom.',
-  ipad:    'Hold the watch against the bottom edge of your iPad near the mic.',
-  android: 'Hold the watch against the back of your phone near the bottom mic.',
-  mac:     'Hold the watch against the bottom edge of your Mac near the mic grille.',
-  windows: 'Hold the watch against the left side of your laptop near the mic grille.',
-  unknown: "Hold the watch as close to your device's microphone as possible.",
+  iphone:  'Press the watch case firmly against the bottom edge of your iPhone (where the mic holes are). Physical contact is required — holding it near will not work.',
+  ipad:    'Press the watch case firmly against the bottom edge of your iPad where the mic is. Physical contact is required.',
+  android: 'Press the watch case firmly against the bottom edge of your phone where the mic holes are. Physical contact is required.',
+  mac:     'Press the watch case firmly against the bottom edge of your Mac near the mic grille. Physical contact is required.',
+  windows: 'Press the watch case firmly against the left side of your laptop near the mic grille. Physical contact is required.',
+  unknown: 'Press the watch case firmly against your device microphone. Physical contact is required — holding it near will not work.',
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────

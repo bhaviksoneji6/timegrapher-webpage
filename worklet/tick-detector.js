@@ -22,8 +22,8 @@ class TickDetectorProcessor extends AudioWorkletProcessor {
     this.port.onmessage = (e) => {
       if (e.data.type === 'sensitivity') {
         // Slider 1 (least sensitive) → multiplier 15
-        // Slider 10 (most sensitive) → multiplier 3
-        this._multiplier = 15 - (e.data.value - 1) * (12 / 9);
+        // Slider 10 (most sensitive) → multiplier 2
+        this._multiplier = 15 - (e.data.value - 1) * (13 / 9);
       }
     };
   }
