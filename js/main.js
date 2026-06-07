@@ -311,14 +311,14 @@ function updateMeter(peak, floor) {
     ? peak * 0.6 + smoothedPeak * 0.4
     : peak * 0.05 + smoothedPeak * 0.95;
 
-  // Show absolute signal level — not SNR. SNR was always green because
-  // iOS AGC keeps peak/floor ratio constant regardless of actual signal.
-  const level = Math.min(smoothedPeak / 0.15, 1);
+  // Absolute level scaled for raw (non-AGC) iPhone mic.
+  // Without AGC, room noise ≈ 0.0002, watch ticks ≈ 0.002, speech ≈ 0.05+
+  const level = Math.min(smoothedPeak / 0.05, 1);
 
   let color;
-  if (smoothedPeak > 0.85)  color = 'red';
-  else if (smoothedPeak > 0.01) color = 'green';
-  else                      color = 'yellow';
+  if (smoothedPeak > 0.85)   color = 'red';
+  else if (smoothedPeak > 0.002) color = 'green';
+  else                       color = 'yellow';
 
   els.meterFill.style.width   = (level * 100) + '%';
   els.meterFill.dataset.color = color;

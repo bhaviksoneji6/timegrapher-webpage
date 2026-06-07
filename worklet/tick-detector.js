@@ -21,9 +21,9 @@ class TickDetectorProcessor extends AudioWorkletProcessor {
 
     this.port.onmessage = (e) => {
       if (e.data.type === 'sensitivity') {
-        // Slider 1 (least sensitive) → multiplier 25
-        // Slider 10 (most sensitive) → multiplier 5
-        this._multiplier = 25 - (e.data.value - 1) * (20 / 9);
+        // Slider 1 (least sensitive) → multiplier 15
+        // Slider 10 (most sensitive) → multiplier 3
+        this._multiplier = 15 - (e.data.value - 1) * (12 / 9);
       }
     };
   }
@@ -73,7 +73,7 @@ class TickDetectorProcessor extends AudioWorkletProcessor {
       if (this._state === 'idle') {
         const threshold = Math.max(
           this._slowEnergy * this._multiplier,
-          0.008   // absolute floor — ignores sub-1% signals entirely
+          0.001   // absolute floor — filters DC offset and sub-noise signals
         );
 
         if (abs > threshold) {
